@@ -74,7 +74,12 @@ try {
 
   term.loadAddon(new WebLinksAddon.WebLinksAddon());
 
-  term.open(document.body);
+  let condiv = document.getElementById("pterm");
+  if (condiv != null) {
+    term.open(condiv);
+  }
+
+
   fitAddon.fit();
   onresize = () => fitAddon.fit();
 
@@ -214,6 +219,26 @@ try {
         case 'help':
           args[0] = '--help';
           break;
+        case 'view': {
+          let openFiles = new OpenFiles(preOpen);
+          {
+            let path = args[1];
+            let { preOpen, relativePath } = openFiles.findRelPath(path);
+            let handle = await preOpen.getFileOrDir(
+              relativePath,
+              FileOrDir.File,
+              OpenFlags.Exclusive
+            );
+            let file = await handle.getFile();
+            let name = file.name;
+            let isGlb = name.charAt(name.length-3) === 'g' && name.charAt(name.length-2) === 'l' && name.charAt(name.length-1) === 'b';
+            let type = isGlb ? "model/gltf-binary" : "model/gltf+json";
+            let mimed_blob = file.slice(0,file.size,type);
+            updateModelURL(mimed_blob);
+            
+          }
+          continue;
+        }
         case 'mount': {
           let dest = args[1];
           if (!dest || dest === '--help') {
@@ -281,6 +306,17 @@ try {
         }).run(await module);
         if (statusCode !== 0) {
           term.writeln(`Exit code: ${statusCode}`);
+        } else {
+          for await (let [name, handle] of preOpen['/sandbox']) {
+            setTimeout(() => {
+              var regex = /^[^.]+.crswap$/;
+              if (!regex.test(name)) {
+                console.log(name);
+                //updateModelURL("https://playground.babylonjs.com/scenes/BoomBox.glb");
+              }
+            }, 2000);
+
+          }
         }
       } finally {
         ctrlCHandler.dispose();

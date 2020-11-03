@@ -1,12 +1,53 @@
 <!DOCTYPE html>
-<title>WebAssembly demo with File System Access</title>
-<meta name="description" content="A demo showing WebAssembly + WASI apps running on the Web with access to a real filesystem." />
-<link rel="preload" href="uutils.async.wasm" as="fetch" crossorigin />
-<link rel="icon" href="https://webassembly.org/favicon.ico" type="image/x-icon">
-<style>html, body, .xterm { height: 100%; margin: 0 }</style>
-<link rel="stylesheet" href="node_modules/xterm/css/xterm.css" />
-<script src="node_modules/xterm/lib/xterm.js"></script>
-<script src="node_modules/local-echo/dist/local-echo.js"></script>
-<script src="node_modules/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
-<script src="node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js"></script>
-<script type="module" src="dist/browser.js"></script>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>...</title>
+    <link rel="preload" href="uutils.async.wasm" as="fetch" crossorigin />
+    <link rel="icon" href="https://webassembly.org/favicon.ico" type="image/x-icon">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        .container {
+            height: 100%;
+            min-height: 100%;
+            width: 100%;
+            min-width: 100%;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .box {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+    <link rel="stylesheet" href="node_modules/xterm/css/xterm.css" />
+    <script src="node_modules/xterm/lib/xterm.js"></script>
+    <script src="node_modules/local-echo/dist/local-echo.js"></script>
+    <script src="node_modules/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+    <script src="node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js"></script>
+    <script type="module" src="dist/browser.js"></script>
+    
+    
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="box" style="width: 80%;">
+            <script src="https://cdn.babylonjs.com/viewer/babylon.viewer.max.js"></script>
+            <babylon id="babylon-viewer" model.url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Embedded/Duck.gltf" observers.on-scene-init="globalSceneInitCallback"></babylon>
+            <script src="dist/update.js"></script>
+        </div>
+        <div id="pterm" class="box"></div>
+    </div>
+</body>
+<html>
