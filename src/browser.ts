@@ -199,6 +199,7 @@ try {
 
   let preOpen: Record<string, FileSystemDirectoryHandle> = {};
   preOpen['/sandbox'] = await navigator.storage.getDirectory();
+  preOpen['/gltf_out'] = await navigator.storage.getDirectory();
 
   while (true) {
     let line: string = await localEcho.read('$ ');
@@ -231,11 +232,57 @@ try {
             );
             let file = await handle.getFile();
             let name = file.name;
-            let isGlb = name.charAt(name.length-3) === 'g' && name.charAt(name.length-2) === 'l' && name.charAt(name.length-1) === 'b';
+            let isGlb = name.charAt(name.length - 3) === 'g' && name.charAt(name.length - 2) === 'l' && name.charAt(name.length - 1) === 'b';
             let type = isGlb ? "model/gltf-binary" : "model/gltf+json";
-            let mimed_blob = file.slice(0,file.size,type);
-            updateModelURL(mimed_blob);
+
+            let swap = false;
+            let parent = path.substring(0,path.lastIndexOf('/'));
+            let obj = null;
+            if (!isGlb) {
+              obj = JSON.parse(await file.text());
+              for (let buffer of obj.buffers) {
+                let validUri = isValidUrl(buffer.uri);
+                console.log(validUri);
+                if(!validUri) {
+                  swap = true;
+                  buffer.uri = await fileToUri(parent,buffer.uri);
+                }
+              }
+            }
             
+            let mimed_blob = swap ? new Blob([JSON.stringify(obj)], {type : 'model/gltf+json'}) : file.slice(0, file.size, type);
+            updateModelURL(mimed_blob);
+            function isValidUrl(input: string) {
+              if (input.substring(0, 16) === "data:application/octet-stream;base64") {
+                return true;
+              }
+              try {
+                new URL(input);
+              } catch (_) {
+                return false;
+              }
+              return true;
+            }
+
+            async function fileToUri(parent : string,filename : string) : Promise<string> { 
+              let path = parent + '/' + filename
+              let { preOpen, relativePath } = openFiles.findRelPath(path);
+              let handle = await preOpen.getFileOrDir(
+                relativePath,
+                FileOrDir.File,
+                OpenFlags.Exclusive
+              );
+              let file = await handle.getFile();
+              let uri = URL.createObjectURL(file);
+
+              // make relative. full uri would result is buggy request:
+              // blob:http://localhost:8080/blob:http://localhost:8080/bdbf4675-9b8d-49da-a4b9-3f36433ff952
+              let seperator = uri.lastIndexOf('/');
+              console.log(uri);
+              let res = uri.substring(seperator+1);
+              console.log(res)
+              return res;
+            }
           }
           continue;
         }

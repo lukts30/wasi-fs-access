@@ -67,6 +67,7 @@ function updateModelURL(blobGltf) {
         maybe change to https://doc.babylonjs.com/how_to/load_from_any_file_type ?
         */
         let loader = blobGltf.type === 'model/gltf+json' ? ".gltf" : ".glb";
+        console.log(loader);
 
         viewer.loadModel({
             url: URL.createObjectURL(blobGltf),
